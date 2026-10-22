@@ -1,6 +1,6 @@
 import { AppError } from '../errors/AppError.js';
 
-export const makeEquipoUseCases = ({ equipoDao, jugadorDao }) => {
+export const makeEquipoUseCases = ({ equipoDao, jugadorDao, partidoDao }) => {
   return {
     async listarEquipos() {
       return await equipoDao.findAll();
@@ -53,13 +53,23 @@ export const makeEquipoUseCases = ({ equipoDao, jugadorDao }) => {
       }
 
       // Regla de negocio: no se puede eliminar un equipo que tenga jugadores registrados.
-      // Evita jugadores huérfanos y mantiene el mismo comportamiento en memoria y en SQL.
       const totalJugadores = await jugadorDao.countByEquipo(id);
       if (totalJugadores > 0) {
         throw AppError.conflict(
           `No se puede eliminar el equipo "${existe.nombre}": tiene ${totalJugadores} jugador(es) registrado(s)`,
           'EQUIPO_CON_JUGADORES'
         );
+      }
+
+      // Regla de negocio: no se puede eliminar un equipo que tenga partidos (local o visitante).
+      if (partidoDao) {
+        const totalPartidos = await partidoDao.countByEquipo(id);
+        if (totalPartidos > 0) {
+          throw AppError.conflict(
+            `No se puede eliminar el equipo "${existe.nombre}": tiene ${totalPartidos} partido(s) registrado(s)`,
+            'EQUIPO_CON_PARTIDOS'
+          );
+        }
       }
 
       await equipoDao.delete(id);

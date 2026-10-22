@@ -11,5 +11,6 @@ app.listen(config.port, () => {
   console.log(` Healthcheck: http://localhost:${config.port}/health`);
   console.log(` Equipos:     http://localhost:${config.port}/equipos`);
   console.log(` Jugadores:   http://localhost:${config.port}/jugadores`);
+  console.log(` Partidos:    http://localhost:${config.port}/partidos`);
   console.log(`===============================================`);
 });
