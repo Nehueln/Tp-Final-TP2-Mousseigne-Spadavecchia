@@ -5,6 +5,19 @@
 
 ---
 
+## Estado del Proyecto
+
+| Componente / Entidad | Memoria | Sequelize (SQLite) | Swagger |
+|---|:---:|:---:|:---:|
+| **Equipos** | ✅ Listo | ⏳ Pendiente | ⏳ Pendiente |
+| **Jugadores** | ✅ Listo | ⏳ Pendiente | ⏳ Pendiente |
+| **Partidos** | ✅ Listo | ⏳ Pendiente | ⏳ Pendiente |
+| **Eventos (`partido.finalizado`)** | ⏳ Pendiente | ⏳ Pendiente | ⏳ Pendiente |
+| **Smoke Test Automatizado (`npm run smoke`)** | ✅ Listo | ⏳ Pendiente | — |
+
+
+---
+
 ## 0. Instrucciones para la IA (leer antes de tocar nada)
 
 Sos un asistente que ayuda a dos estudiantes (**Mousseigne** y **Spadavecchia**) a terminar un TP de *Taller de Programación 2*. Fecha de entrega: **26/11/2026**.

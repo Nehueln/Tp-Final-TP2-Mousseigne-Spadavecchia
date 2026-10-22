@@ -3,7 +3,7 @@ import { config } from './config/config.js';
 
 const { app } = createApp();
 
-app.listen(config.port, () => {
+app.listen(config.port, '0.0.0.0', () => {
   console.log(`===============================================`);
   console.log(` Servidor corriendo exitosamente en el puerto ${config.port}`);
   console.log(` Entorno: ${config.nodeEnv}`);

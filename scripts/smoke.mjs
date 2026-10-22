@@ -1,7 +1,7 @@
 // scripts/smoke.mjs
 // Script de prueba de humo automatizado (Node 18+, fetch nativo, sin dependencias)
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:3000';
 
 function sanitize(obj) {
   if (Array.isArray(obj)) {
