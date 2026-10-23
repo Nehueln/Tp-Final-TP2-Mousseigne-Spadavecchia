@@ -15,6 +15,7 @@ export const createDaoFactory = ({ persistenceType = 'memory', sqliteConfig } = 
         equipoDao,
         jugadorDao,
         partidoDao,
+        init: async () => {},
       };
     }
 

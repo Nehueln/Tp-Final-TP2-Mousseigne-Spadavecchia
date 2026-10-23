@@ -1,7 +1,9 @@
 import { createApp } from './app.js';
 import { config } from './config/config.js';
 
-const { app } = createApp();
+const { app, container } = createApp();
+
+await container.daos.init();
 
 app.listen(config.port, '0.0.0.0', () => {
   console.log(`===============================================`);
