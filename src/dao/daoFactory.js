@@ -1,6 +1,11 @@
 import { EquipoMemoryDao } from './memory/EquipoMemoryDao.js';
 import { JugadorMemoryDao } from './memory/JugadorMemoryDao.js';
 import { PartidoMemoryDao } from './memory/PartidoMemoryDao.js';
+import { createSequelizeInstance } from './sequelize/sequelize.js';
+import { initModels } from './sequelize/models/index.js';
+import { EquipoSequelizeDao } from './sequelize/EquipoSequelizeDao.js';
+import { JugadorSequelizeDao } from './sequelize/JugadorSequelizeDao.js';
+import { PartidoSequelizeDao } from './sequelize/PartidoSequelizeDao.js';
 import { AppError } from '../errors/AppError.js';
 
 export const createDaoFactory = ({ persistenceType = 'memory', sqliteConfig } = {}) => {
@@ -20,10 +25,21 @@ export const createDaoFactory = ({ persistenceType = 'memory', sqliteConfig } = 
     }
 
     case 'sequelize': {
-      // Se completará en la etapa de Sequelize con SQLite
-      throw AppError.internal(
-        'La persistencia "sequelize" aún no está inicializada. Usa PERSISTENCE_TYPE=memory.'
-      );
+      const sequelize = createSequelizeInstance(sqliteConfig?.path);
+      const models = initModels(sequelize);
+
+      const equipoDao = new EquipoSequelizeDao({ EquipoModel: models.Equipo });
+      const jugadorDao = new JugadorSequelizeDao({ JugadorModel: models.Jugador });
+      const partidoDao = new PartidoSequelizeDao({ PartidoModel: models.Partido });
+
+      return {
+        equipoDao,
+        jugadorDao,
+        partidoDao,
+        init: async () => {
+          await sequelize.sync();
+        },
+      };
     }
 
     default:
