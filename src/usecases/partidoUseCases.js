@@ -1,6 +1,7 @@
 import { AppError } from '../errors/AppError.js';
+import { PARTIDO_FINALIZADO } from '../events/eventNames.js';
 
-export const makePartidoUseCases = ({ partidoDao, equipoDao }) => {
+export const makePartidoUseCases = ({ partidoDao, equipoDao, eventBus }) => {
   return {
     async listarPartidos(filters = {}) {
       return await partidoDao.findAll(filters);
@@ -135,7 +136,34 @@ export const makePartidoUseCases = ({ partidoDao, equipoDao }) => {
         estado: 'finalizado',
       });
 
-      // Semana 4: emitir partido.finalizado
+      // 4. Emitir evento de dominio desacoplado
+      if (eventBus) {
+        const [local, visitante] = await Promise.all([
+          equipoDao.findById(partidoActualizado.localId),
+          equipoDao.findById(partidoActualizado.visitanteId),
+        ]);
+
+        let resultado = 'EMPATE';
+        if (partidoActualizado.golesLocal > partidoActualizado.golesVisitante) {
+          resultado = 'LOCAL';
+        } else if (partidoActualizado.golesVisitante > partidoActualizado.golesLocal) {
+          resultado = 'VISITANTE';
+        }
+
+        const payload = {
+          partidoId: partidoActualizado.id,
+          localId: partidoActualizado.localId,
+          localNombre: local ? local.nombre : 'Desconocido',
+          visitanteId: partidoActualizado.visitanteId,
+          visitanteNombre: visitante ? visitante.nombre : 'Desconocido',
+          golesLocal: partidoActualizado.golesLocal,
+          golesVisitante: partidoActualizado.golesVisitante,
+          resultado,
+          fecha: partidoActualizado.fecha,
+        };
+
+        eventBus.emit(PARTIDO_FINALIZADO, payload);
+      }
 
       return partidoActualizado;
     },

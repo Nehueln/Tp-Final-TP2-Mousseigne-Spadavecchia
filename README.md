@@ -207,7 +207,35 @@ Resultado verificado:
 
 ---
 
-## 7. Documentación OpenAPI / Swagger
+## 7. Eventos de Dominio y Notificadores
+
+El sistema implementa una arquitectura orientada a eventos mediante `EventEmitter` para desacoplar las reglas de negocio de los efectos secundarios (como notificaciones o logging):
+
+- **Evento Emitido:** `partido.finalizado`.
+- **Emisor:** Caso de uso `finalizarPartido` (`src/usecases/partidoUseCases.js`), emitido únicamente tras persistir el cambio de estado de forma exitosa en la base de datos o memoria.
+- **Payload del Evento:**
+  ```json
+  {
+    "partidoId": 1,
+    "localId": 1,
+    "localNombre": "Boca Juniors",
+    "visitanteId": 2,
+    "visitanteNombre": "River Plate",
+    "golesLocal": 3,
+    "golesVisitante": 1,
+    "resultado": "LOCAL",
+    "fecha": "2026-11-15"
+  }
+  ```
+- **Notificadores Intercambiables:**
+  - `ConsoleNotifier`: Imprime la notificación formateada en la consola estándar.
+  - `FileNotifier`: Escribe una línea estructurada en JSON Lines en el archivo configurado (por defecto `./logs/eventos.log`), creando la carpeta automáticamente si no existe.
+  - `CompositeNotifier`: Permite emitir simultáneamente a consola y archivo (`NOTIFIER_TYPE=both`).
+- **Aislamiento de Fallos:** El listener (`src/events/listeners/partidoListeners.js`) ejecuta el notificador dentro de un bloque `try/catch`. Si el notificador falla (por ejemplo, problemas de escritura en disco), el error se captura y se reporta en logs sin interrumpir la respuesta HTTP 200 ni cancelar la operación de negocio.
+
+---
+
+## 8. Documentación OpenAPI / Swagger
 
 La documentación interactiva de la API estará disponible en la ruta:
 ```
@@ -218,13 +246,14 @@ Permite inspeccionar esquemas, contratos de respuesta y ejecutar pruebas interac
 
 ---
 
-## 8. Estado del Proyecto
+## 9. Estado del Proyecto
 
 | Componente / Módulo | Memoria | Sequelize (SQLite) | Swagger UI |
 |---|:---:|:---:|:---:|
-| **Equipos** | ✅ Listo | ✅ Listo | ⏳ En integración |
-| **Jugadores** | ✅ Listo | ✅ Listo | ⏳ En integración |
-| **Partidos** | ✅ Listo | ✅ Listo | ⏳ En integración |
-| **Eventos (`partido.finalizado`)** | ⏳ Fase 4 | ⏳ Fase 4 | — |
+| **Equipos** | ✅ Listo | ✅ Listo | ⏳ Fase 5 |
+| **Jugadores** | ✅ Listo | ✅ Listo | ⏳ Fase 5 |
+| **Partidos** | ✅ Listo | ✅ Listo | ⏳ Fase 5 |
+| **Eventos (`partido.finalizado`)** | ✅ Listo | ✅ Listo | — |
 | **Smoke Test (`npm run smoke`)** | ✅ Listo (29/29) | ✅ Listo (29/29) | — |
 | **Test de Paridad (`npm run parity`)** | ✅ Verificado (29/29) | ✅ Verificado (29/29) | — |
+

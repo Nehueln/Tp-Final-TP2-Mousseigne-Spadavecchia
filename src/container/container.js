@@ -9,15 +9,28 @@ import { makeJugadorRouter } from '../routes/jugadorRoutes.js';
 import { makePartidoUseCases } from '../usecases/partidoUseCases.js';
 import { makePartidoController } from '../controllers/partidoController.js';
 import { makePartidoRouter } from '../routes/partidoRoutes.js';
+import { createEventBus } from '../events/eventBus.js';
+import { createNotifier } from '../events/notifiers/createNotifier.js';
+import { registerPartidoListeners } from '../events/listeners/partidoListeners.js';
 
 export const createContainer = ({ config }) => {
-  // 1. Resolver DAOs mediante la factory (memory o sequelize)
+  // 1. Instanciar Bus de Eventos y Notificador desacoplado
+  const eventBus = createEventBus();
+  const notifier = createNotifier({
+    type: config.notifier?.type,
+    filePath: config.notifier?.filePath,
+  });
+
+  // Registrar listeners de dominio
+  registerPartidoListeners({ eventBus, notifier });
+
+  // 2. Resolver DAOs mediante la factory (memory o sequelize)
   const daos = createDaoFactory({
     persistenceType: config.persistence.type,
     sqliteConfig: config.persistence.sqlite,
   });
 
-  // 2. Instanciar Casos de Uso con los DAOs inyectados
+  // 3. Instanciar Casos de Uso con los DAOs y EventBus inyectados
   const equipoUseCases = makeEquipoUseCases({
     equipoDao: daos.equipoDao,
     jugadorDao: daos.jugadorDao, // para impedir borrar equipos con jugadores
@@ -32,6 +45,7 @@ export const createContainer = ({ config }) => {
   const partidoUseCases = makePartidoUseCases({
     partidoDao: daos.partidoDao,
     equipoDao: daos.equipoDao,
+    eventBus,
   });
 
   // 3. Instanciar Controladores con los Casos de Uso inyectados
@@ -57,6 +71,8 @@ export const createContainer = ({ config }) => {
   return {
     router,
     daos,
+    eventBus,
+    notifier,
     useCases: {
       equipoUseCases,
       jugadorUseCases,
