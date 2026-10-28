@@ -18,7 +18,142 @@ tags:
     description: Programación y finalización de encuentros del torneo
   - name: Sistema
     description: Endpoints de diagnóstico y monitoreo del servidor
-paths: {}
+paths:
+  /equipos:
+    get:
+      tags:
+        - Equipos
+      summary: Listar todos los equipos
+      description: Retorna la lista completa de clubes de la liga ordenados por ID ascendente.
+      responses:
+        '200':
+          description: Listado obtenido con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquiposResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags:
+        - Equipos
+      summary: Crear un nuevo equipo
+      description: Registra un club en el torneo. El nombre debe ser único.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipoInput'
+            example:
+              nombre: Boca Juniors
+              barrio: La Boca
+              colores: Azul y Oro
+              fechaFundacion: "1905-04-03"
+      responses:
+        '201':
+          description: Club registrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /equipos/{id}:
+    get:
+      tags:
+        - Equipos
+      summary: Obtener equipo por ID
+      description: Retorna los datos de un club identificado por su ID numérico.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del equipo
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Club encontrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      tags:
+        - Equipos
+      summary: Actualizar un equipo
+      description: Actualiza uno o varios campos del club. Si se modifica el nombre, se valida su unicidad.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del equipo a modificar
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipoUpdate'
+            example:
+              colores: Azul y Amarillo Oro
+      responses:
+        '200':
+          description: Club actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags:
+        - Equipos
+      summary: Eliminar un equipo
+      description: Da de baja un club. Rechazado con 409 si tiene jugadores o partidos vinculados.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del equipo a eliminar
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '204':
+          description: Club eliminado exitosamente (sin contenido)
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
 components:
   schemas:
     Error:
