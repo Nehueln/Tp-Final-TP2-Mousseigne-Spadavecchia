@@ -316,6 +316,214 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  /partidos:
+    get:
+      tags:
+        - Partidos
+      summary: Listar partidos
+      description: Retorna la lista de partidos con filtros opcionales por estado y/o equipoId.
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          description: Filtrar por estado del encuentro
+          schema:
+            type: string
+            enum:
+              - programado
+              - finalizado
+          example: programado
+        - name: equipoId
+          in: query
+          required: false
+          description: Filtrar partidos donde el equipo participa como local o visitante
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Listado de partidos obtenido exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidosResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags:
+        - Partidos
+      summary: Programar un nuevo partido
+      description: Registra un encuentro entre dos clubes distintos. Nace en estado `programado` con goles en 0.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartidoInput'
+            example:
+              localId: 1
+              visitanteId: 2
+              fecha: "2026-11-10"
+      responses:
+        '201':
+          description: Partido programado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /partidos/{id}:
+    get:
+      tags:
+        - Partidos
+      summary: Obtener partido por ID
+      description: Retorna los datos de un partido según su identificador numérico.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del partido
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Partido encontrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      tags:
+        - Partidos
+      summary: Actualizar un partido programado
+      description: Modifica los equipos o la fecha de un encuentro. Rechazado con 409 si el partido ya está finalizado.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del partido a modificar
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartidoUpdate'
+            example:
+              fecha: "2026-11-15"
+      responses:
+        '200':
+          description: Partido actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags:
+        - Partidos
+      summary: Eliminar un partido programado
+      description: Elimina un partido del sistema. Rechazado con 409 si el partido ya está finalizado.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del partido a eliminar
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '204':
+          description: Partido eliminado exitosamente (sin contenido)
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /partidos/{id}/finalizar:
+    post:
+      tags:
+        - Partidos
+      summary: Finalizar un partido
+      description: Asigna el resultado y los goles definitivos, cambia el estado a `finalizado` y emite el evento de dominio `partido.finalizado`. No se puede finalizar un partido ya finalizado (409).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del partido a finalizar
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinalizarPartidoInput'
+            example:
+              golesLocal: 2
+              golesVisitante: 1
+      responses:
+        '200':
+          description: Partido finalizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /health:
+    get:
+      tags:
+        - Sistema
+      summary: Diagnóstico del servicio
+      description: Verifica el estado del servidor, timestamp del sistema y el tipo de persistencia actualmente activo (memory o sequelize).
+      responses:
+        '200':
+          description: Servicio disponible y operativo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
 components:
   schemas:
     Error:
