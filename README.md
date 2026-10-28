@@ -237,12 +237,16 @@ El sistema implementa una arquitectura orientada a eventos mediante `EventEmitte
 
 ## 8. Documentación OpenAPI / Swagger
 
-La documentación interactiva de la API estará disponible en la ruta:
+La API cuenta con especificación formal **OpenAPI 3.0.3** y una interfaz interactiva servida en:
 ```
 http://localhost:3000/api-docs
 ```
 
-Permite inspeccionar esquemas, contratos de respuesta y ejecutar pruebas interactivas ("Try it out") contra el servidor en cualquiera de los modos de persistencia.
+### Características de la Documentación:
+- **Cobertura Total:** Los 4 tags (`Equipos`, `Jugadores`, `Partidos`, `Sistema`) con sus 8 rutas y métodos HTTP (`GET`, `POST`, `PUT`, `DELETE`).
+- **Pruebas Interactivas ("Try it out"):** Permite ejecutar peticiones directamente contra el servidor en tiempo real, tanto en modo `memory` como `sequelize`.
+- **Ejemplos Válidos:** Todos los ejemplos de cuerpos de petición y parámetros cumplen estrictamente con los esquemas de validación Zod.
+- **Respuestas Tipadas y Esquemas Reutilizables:** Se modelan todos los códigos HTTP posibles (`200`, `201`, `204`, `400`, `404`, `409` y `500`) utilizando referencias (`$ref`) a `components/schemas` y `components/responses`.
 
 ---
 
@@ -250,9 +254,9 @@ Permite inspeccionar esquemas, contratos de respuesta y ejecutar pruebas interac
 
 | Componente / Módulo | Memoria | Sequelize (SQLite) | Swagger UI |
 |---|:---:|:---:|:---:|
-| **Equipos** | ✅ Listo | ✅ Listo | ⏳ Fase 5 |
-| **Jugadores** | ✅ Listo | ✅ Listo | ⏳ Fase 5 |
-| **Partidos** | ✅ Listo | ✅ Listo | ⏳ Fase 5 |
+| **Equipos** | ✅ Listo | ✅ Listo | ✅ Listo |
+| **Jugadores** | ✅ Listo | ✅ Listo | ✅ Listo |
+| **Partidos** | ✅ Listo | ✅ Listo | ✅ Listo |
 | **Eventos (`partido.finalizado`)** | ✅ Listo | ✅ Listo | — |
 | **Smoke Test (`npm run smoke`)** | ✅ Listo (29/29) | ✅ Listo (29/29) | — |
 | **Test de Paridad (`npm run parity`)** | ✅ Verificado (29/29) | ✅ Verificado (29/29) | — |
