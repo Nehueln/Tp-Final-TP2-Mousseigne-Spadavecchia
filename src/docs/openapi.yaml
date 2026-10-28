@@ -154,6 +154,168 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
+
+  /jugadores:
+    get:
+      tags:
+        - Jugadores
+      summary: Listar jugadores
+      description: Retorna la lista de jugadores registrados, con filtros opcionales por equipo y/o posición táctica.
+      parameters:
+        - name: equipoId
+          in: query
+          required: false
+          description: Filtrar por ID de equipo
+          schema:
+            type: integer
+          example: 1
+        - name: posicion
+          in: query
+          required: false
+          description: Filtrar por posición táctica
+          schema:
+            type: string
+            enum:
+              - ARQUERO
+              - DEFENSOR
+              - MEDIOCAMPISTA
+              - DELANTERO
+          example: DELANTERO
+      responses:
+        '200':
+          description: Listado de jugadores obtenido exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JugadoresResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags:
+        - Jugadores
+      summary: Crear un nuevo jugador
+      description: Registra un deportista en un club. Valida DNI único, camiseta única por club, existencia del equipo y cupo máximo de 25 jugadores.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JugadorInput'
+            example:
+              nombre: Edinson
+              apellido: Cavani
+              dni: "11111111"
+              numeroCamiseta: 10
+              posicion: DELANTERO
+              equipoId: 1
+      responses:
+        '201':
+          description: Jugador fichado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JugadorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /jugadores/{id}:
+    get:
+      tags:
+        - Jugadores
+      summary: Obtener jugador por ID
+      description: Retorna la información completa de un jugador según su identificador numérico.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del jugador
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Jugador encontrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JugadorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      tags:
+        - Jugadores
+      summary: Actualizar un jugador
+      description: Modifica los datos de un jugador. Si cambia de club o dorsal, valida unicidad y cupo de 25 jugadores.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del jugador a modificar
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JugadorUpdate'
+            example:
+              numeroCamiseta: 7
+              posicion: DELANTERO
+      responses:
+        '200':
+          description: Jugador actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JugadorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags:
+        - Jugadores
+      summary: Eliminar un jugador
+      description: Da de baja a un jugador del sistema según su ID numérico.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del jugador a dar de baja
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '204':
+          description: Jugador eliminado exitosamente (sin contenido)
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
 components:
   schemas:
     Error:
