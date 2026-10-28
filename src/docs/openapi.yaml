@@ -1,0 +1,423 @@
+openapi: 3.0.3
+info:
+  title: API Liga Amateur de Fútbol
+  description: >
+    API REST para la gestión integral de una liga amateur de fútbol, desarrollada
+    con Arquitectura en Capas, Inversión de Dependencias y Persistencia Intercambiable
+    (Memoria y Sequelize con SQLite).
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Servidor de desarrollo local
+tags:
+  - name: Equipos
+    description: Operaciones CRUD sobre clubes participantes
+  - name: Jugadores
+    description: Gestión de deportistas fichados en los clubes
+  - name: Partidos
+    description: Programación y finalización de encuentros del torneo
+  - name: Sistema
+    description: Endpoints de diagnóstico y monitoreo del servidor
+paths: {}
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - details
+          properties:
+            code:
+              type: string
+              example: RECURSO_NOT_FOUND
+            message:
+              type: string
+              example: Mensaje descriptivo del error de dominio o validación
+            details:
+              nullable: true
+              example: null
+
+    Equipo:
+      type: object
+      required:
+        - id
+        - nombre
+        - barrio
+        - colores
+        - fechaFundacion
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: Boca Juniors
+        barrio:
+          type: string
+          example: La Boca
+        colores:
+          type: string
+          example: Azul y Oro
+        fechaFundacion:
+          type: string
+          format: date
+          example: "1905-04-03"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+
+    EquipoInput:
+      type: object
+      required:
+        - nombre
+        - barrio
+        - colores
+        - fechaFundacion
+      properties:
+        nombre:
+          type: string
+          example: Boca Juniors
+        barrio:
+          type: string
+          example: La Boca
+        colores:
+          type: string
+          example: Azul y Oro
+        fechaFundacion:
+          type: string
+          format: date
+          example: "1905-04-03"
+
+    EquipoUpdate:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: Boca Juniors
+        barrio:
+          type: string
+          example: La Boca
+        colores:
+          type: string
+          example: Azul y Amarillo Oro
+        fechaFundacion:
+          type: string
+          format: date
+          example: "1905-04-03"
+
+    EquipoResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Equipo'
+
+    EquiposResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Equipo'
+
+    Jugador:
+      type: object
+      required:
+        - id
+        - nombre
+        - apellido
+        - dni
+        - numeroCamiseta
+        - posicion
+        - equipoId
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: Edinson
+        apellido:
+          type: string
+          example: Cavani
+        dni:
+          type: string
+          example: "11111111"
+        numeroCamiseta:
+          type: integer
+          example: 10
+        posicion:
+          type: string
+          enum:
+            - ARQUERO
+            - DEFENSOR
+            - MEDIOCAMPISTA
+            - DELANTERO
+          example: DELANTERO
+        equipoId:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+
+    JugadorInput:
+      type: object
+      required:
+        - nombre
+        - apellido
+        - dni
+        - numeroCamiseta
+        - posicion
+        - equipoId
+      properties:
+        nombre:
+          type: string
+          example: Edinson
+        apellido:
+          type: string
+          example: Cavani
+        dni:
+          type: string
+          example: "11111111"
+        numeroCamiseta:
+          type: integer
+          example: 10
+        posicion:
+          type: string
+          enum:
+            - ARQUERO
+            - DEFENSOR
+            - MEDIOCAMPISTA
+            - DELANTERO
+          example: DELANTERO
+        equipoId:
+          type: integer
+          example: 1
+
+    JugadorUpdate:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: Edinson
+        apellido:
+          type: string
+          example: Cavani
+        dni:
+          type: string
+          example: "11111111"
+        numeroCamiseta:
+          type: integer
+          example: 7
+        posicion:
+          type: string
+          enum:
+            - ARQUERO
+            - DEFENSOR
+            - MEDIOCAMPISTA
+            - DELANTERO
+          example: DELANTERO
+        equipoId:
+          type: integer
+          example: 1
+
+    JugadorResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Jugador'
+
+    JugadoresResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Jugador'
+
+    Partido:
+      type: object
+      required:
+        - id
+        - localId
+        - visitanteId
+        - fecha
+        - golesLocal
+        - golesVisitante
+        - estado
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        localId:
+          type: integer
+          example: 1
+        visitanteId:
+          type: integer
+          example: 2
+        fecha:
+          type: string
+          format: date
+          example: "2026-11-10"
+        golesLocal:
+          type: integer
+          example: 0
+        golesVisitante:
+          type: integer
+          example: 0
+        estado:
+          type: string
+          enum:
+            - programado
+            - finalizado
+          example: programado
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+
+    PartidoInput:
+      type: object
+      required:
+        - localId
+        - visitanteId
+        - fecha
+      properties:
+        localId:
+          type: integer
+          example: 1
+        visitanteId:
+          type: integer
+          example: 2
+        fecha:
+          type: string
+          format: date
+          example: "2026-11-10"
+
+    PartidoUpdate:
+      type: object
+      properties:
+        localId:
+          type: integer
+          example: 1
+        visitanteId:
+          type: integer
+          example: 3
+        fecha:
+          type: string
+          format: date
+          example: "2026-11-12"
+
+    FinalizarPartidoInput:
+      type: object
+      required:
+        - golesLocal
+        - golesVisitante
+      properties:
+        golesLocal:
+          type: integer
+          minimum: 0
+          example: 2
+        golesVisitante:
+          type: integer
+          minimum: 0
+          example: 1
+
+    PartidoResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Partido'
+
+    PartidosResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Partido'
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - persistence
+      properties:
+        status:
+          type: string
+          example: OK
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-10-27T21:00:00.000Z"
+        persistence:
+          type: string
+          example: memory
+
+  responses:
+    BadRequest:
+      description: Solicitud inválida por error de formato o regla de validación de sintaxis (400)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Recurso no encontrado (404)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Conflict:
+      description: Conflicto con el estado actual del recurso o regla de negocio (409)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalError:
+      description: Error interno no controlado del servidor (500)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
