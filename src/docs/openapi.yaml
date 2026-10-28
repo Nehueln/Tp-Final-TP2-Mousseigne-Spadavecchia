@@ -1,0 +1,928 @@
+openapi: 3.0.3
+info:
+  title: API Liga Amateur de Fútbol
+  description: >
+    API REST para la gestión integral de una liga amateur de fútbol, desarrollada
+    con Arquitectura en Capas, Inversión de Dependencias y Persistencia Intercambiable
+    (Memoria y Sequelize con SQLite).
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Servidor de desarrollo local
+tags:
+  - name: Equipos
+    description: Operaciones CRUD sobre clubes participantes
+  - name: Jugadores
+    description: Gestión de deportistas fichados en los clubes
+  - name: Partidos
+    description: Programación y finalización de encuentros del torneo
+  - name: Sistema
+    description: Endpoints de diagnóstico y monitoreo del servidor
+paths:
+  /equipos:
+    get:
+      tags:
+        - Equipos
+      summary: Listar todos los equipos
+      description: Retorna la lista completa de clubes de la liga ordenados por ID ascendente.
+      responses:
+        '200':
+          description: Listado obtenido con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquiposResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags:
+        - Equipos
+      summary: Crear un nuevo equipo
+      description: Registra un club en el torneo. El nombre debe ser único.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipoInput'
+            example:
+              nombre: Boca Juniors
+              barrio: La Boca
+              colores: Azul y Oro
+              fechaFundacion: "1905-04-03"
+      responses:
+        '201':
+          description: Club registrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /equipos/{id}:
+    get:
+      tags:
+        - Equipos
+      summary: Obtener equipo por ID
+      description: Retorna los datos de un club identificado por su ID numérico.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del equipo
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Club encontrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      tags:
+        - Equipos
+      summary: Actualizar un equipo
+      description: Actualiza uno o varios campos del club. Si se modifica el nombre, se valida su unicidad.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del equipo a modificar
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipoUpdate'
+            example:
+              colores: Azul y Amarillo Oro
+      responses:
+        '200':
+          description: Club actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags:
+        - Equipos
+      summary: Eliminar un equipo
+      description: Da de baja un club. Rechazado con 409 si tiene jugadores o partidos vinculados.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del equipo a eliminar
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '204':
+          description: Club eliminado exitosamente (sin contenido)
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /jugadores:
+    get:
+      tags:
+        - Jugadores
+      summary: Listar jugadores
+      description: Retorna la lista de jugadores registrados, con filtros opcionales por equipo y/o posición táctica.
+      parameters:
+        - name: equipoId
+          in: query
+          required: false
+          description: Filtrar por ID de equipo
+          schema:
+            type: integer
+          example: 1
+        - name: posicion
+          in: query
+          required: false
+          description: Filtrar por posición táctica
+          schema:
+            type: string
+            enum:
+              - ARQUERO
+              - DEFENSOR
+              - MEDIOCAMPISTA
+              - DELANTERO
+          example: DELANTERO
+      responses:
+        '200':
+          description: Listado de jugadores obtenido exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JugadoresResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags:
+        - Jugadores
+      summary: Crear un nuevo jugador
+      description: Registra un deportista en un club. Valida DNI único, camiseta única por club, existencia del equipo y cupo máximo de 25 jugadores.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JugadorInput'
+            example:
+              nombre: Edinson
+              apellido: Cavani
+              dni: "11111111"
+              numeroCamiseta: 10
+              posicion: DELANTERO
+              equipoId: 1
+      responses:
+        '201':
+          description: Jugador fichado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JugadorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /jugadores/{id}:
+    get:
+      tags:
+        - Jugadores
+      summary: Obtener jugador por ID
+      description: Retorna la información completa de un jugador según su identificador numérico.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del jugador
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Jugador encontrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JugadorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      tags:
+        - Jugadores
+      summary: Actualizar un jugador
+      description: Modifica los datos de un jugador. Si cambia de club o dorsal, valida unicidad y cupo de 25 jugadores.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del jugador a modificar
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JugadorUpdate'
+            example:
+              numeroCamiseta: 7
+              posicion: DELANTERO
+      responses:
+        '200':
+          description: Jugador actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JugadorResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags:
+        - Jugadores
+      summary: Eliminar un jugador
+      description: Da de baja a un jugador del sistema según su ID numérico.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del jugador a dar de baja
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '204':
+          description: Jugador eliminado exitosamente (sin contenido)
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /partidos:
+    get:
+      tags:
+        - Partidos
+      summary: Listar partidos
+      description: Retorna la lista de partidos con filtros opcionales por estado y/o equipoId.
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          description: Filtrar por estado del encuentro
+          schema:
+            type: string
+            enum:
+              - programado
+              - finalizado
+          example: programado
+        - name: equipoId
+          in: query
+          required: false
+          description: Filtrar partidos donde el equipo participa como local o visitante
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Listado de partidos obtenido exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidosResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags:
+        - Partidos
+      summary: Programar un nuevo partido
+      description: Registra un encuentro entre dos clubes distintos. Nace en estado `programado` con goles en 0.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartidoInput'
+            example:
+              localId: 1
+              visitanteId: 2
+              fecha: "2026-11-10"
+      responses:
+        '201':
+          description: Partido programado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /partidos/{id}:
+    get:
+      tags:
+        - Partidos
+      summary: Obtener partido por ID
+      description: Retorna los datos de un partido según su identificador numérico.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del partido
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Partido encontrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      tags:
+        - Partidos
+      summary: Actualizar un partido programado
+      description: Modifica los equipos o la fecha de un encuentro. Rechazado con 409 si el partido ya está finalizado.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del partido a modificar
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartidoUpdate'
+            example:
+              fecha: "2026-11-15"
+      responses:
+        '200':
+          description: Partido actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags:
+        - Partidos
+      summary: Eliminar un partido programado
+      description: Elimina un partido del sistema. Rechazado con 409 si el partido ya está finalizado.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del partido a eliminar
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '204':
+          description: Partido eliminado exitosamente (sin contenido)
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /partidos/{id}/finalizar:
+    post:
+      tags:
+        - Partidos
+      summary: Finalizar un partido
+      description: Asigna el resultado y los goles definitivos, cambia el estado a `finalizado` y emite el evento de dominio `partido.finalizado`. No se puede finalizar un partido ya finalizado (409).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID numérico del partido a finalizar
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FinalizarPartidoInput'
+            example:
+              golesLocal: 2
+              golesVisitante: 1
+      responses:
+        '200':
+          description: Partido finalizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartidoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /health:
+    get:
+      tags:
+        - Sistema
+      summary: Diagnóstico del servicio
+      description: Verifica el estado del servidor, timestamp del sistema y el tipo de persistencia actualmente activo (memory o sequelize).
+      responses:
+        '200':
+          description: Servicio disponible y operativo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - details
+          properties:
+            code:
+              type: string
+              example: RECURSO_NOT_FOUND
+            message:
+              type: string
+              example: Mensaje descriptivo del error de dominio o validación
+            details:
+              nullable: true
+              example: null
+
+    Equipo:
+      type: object
+      required:
+        - id
+        - nombre
+        - barrio
+        - colores
+        - fechaFundacion
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: Boca Juniors
+        barrio:
+          type: string
+          example: La Boca
+        colores:
+          type: string
+          example: Azul y Oro
+        fechaFundacion:
+          type: string
+          format: date
+          example: "1905-04-03"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+
+    EquipoInput:
+      type: object
+      required:
+        - nombre
+        - barrio
+        - colores
+        - fechaFundacion
+      properties:
+        nombre:
+          type: string
+          example: Boca Juniors
+        barrio:
+          type: string
+          example: La Boca
+        colores:
+          type: string
+          example: Azul y Oro
+        fechaFundacion:
+          type: string
+          format: date
+          example: "1905-04-03"
+
+    EquipoUpdate:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: Boca Juniors
+        barrio:
+          type: string
+          example: La Boca
+        colores:
+          type: string
+          example: Azul y Amarillo Oro
+        fechaFundacion:
+          type: string
+          format: date
+          example: "1905-04-03"
+
+    EquipoResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Equipo'
+
+    EquiposResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Equipo'
+
+    Jugador:
+      type: object
+      required:
+        - id
+        - nombre
+        - apellido
+        - dni
+        - numeroCamiseta
+        - posicion
+        - equipoId
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: Edinson
+        apellido:
+          type: string
+          example: Cavani
+        dni:
+          type: string
+          example: "11111111"
+        numeroCamiseta:
+          type: integer
+          example: 10
+        posicion:
+          type: string
+          enum:
+            - ARQUERO
+            - DEFENSOR
+            - MEDIOCAMPISTA
+            - DELANTERO
+          example: DELANTERO
+        equipoId:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+
+    JugadorInput:
+      type: object
+      required:
+        - nombre
+        - apellido
+        - dni
+        - numeroCamiseta
+        - posicion
+        - equipoId
+      properties:
+        nombre:
+          type: string
+          example: Edinson
+        apellido:
+          type: string
+          example: Cavani
+        dni:
+          type: string
+          example: "11111111"
+        numeroCamiseta:
+          type: integer
+          example: 10
+        posicion:
+          type: string
+          enum:
+            - ARQUERO
+            - DEFENSOR
+            - MEDIOCAMPISTA
+            - DELANTERO
+          example: DELANTERO
+        equipoId:
+          type: integer
+          example: 1
+
+    JugadorUpdate:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: Edinson
+        apellido:
+          type: string
+          example: Cavani
+        dni:
+          type: string
+          example: "11111111"
+        numeroCamiseta:
+          type: integer
+          example: 7
+        posicion:
+          type: string
+          enum:
+            - ARQUERO
+            - DEFENSOR
+            - MEDIOCAMPISTA
+            - DELANTERO
+          example: DELANTERO
+        equipoId:
+          type: integer
+          example: 1
+
+    JugadorResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Jugador'
+
+    JugadoresResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Jugador'
+
+    Partido:
+      type: object
+      required:
+        - id
+        - localId
+        - visitanteId
+        - fecha
+        - golesLocal
+        - golesVisitante
+        - estado
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        localId:
+          type: integer
+          example: 1
+        visitanteId:
+          type: integer
+          example: 2
+        fecha:
+          type: string
+          format: date
+          example: "2026-11-10"
+        golesLocal:
+          type: integer
+          example: 0
+        golesVisitante:
+          type: integer
+          example: 0
+        estado:
+          type: string
+          enum:
+            - programado
+            - finalizado
+          example: programado
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-10-27T20:00:00.000Z"
+
+    PartidoInput:
+      type: object
+      required:
+        - localId
+        - visitanteId
+        - fecha
+      properties:
+        localId:
+          type: integer
+          example: 1
+        visitanteId:
+          type: integer
+          example: 2
+        fecha:
+          type: string
+          format: date
+          example: "2026-11-10"
+
+    PartidoUpdate:
+      type: object
+      properties:
+        localId:
+          type: integer
+          example: 1
+        visitanteId:
+          type: integer
+          example: 3
+        fecha:
+          type: string
+          format: date
+          example: "2026-11-12"
+
+    FinalizarPartidoInput:
+      type: object
+      required:
+        - golesLocal
+        - golesVisitante
+      properties:
+        golesLocal:
+          type: integer
+          minimum: 0
+          example: 2
+        golesVisitante:
+          type: integer
+          minimum: 0
+          example: 1
+
+    PartidoResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Partido'
+
+    PartidosResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Partido'
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - persistence
+      properties:
+        status:
+          type: string
+          example: OK
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-10-27T21:00:00.000Z"
+        persistence:
+          type: string
+          example: memory
+
+  responses:
+    BadRequest:
+      description: Solicitud inválida por error de formato o regla de validación de sintaxis (400)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Recurso no encontrado (404)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Conflict:
+      description: Conflicto con el estado actual del recurso o regla de negocio (409)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalError:
+      description: Error interno no controlado del servidor (500)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
