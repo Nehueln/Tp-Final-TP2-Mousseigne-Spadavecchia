@@ -10,7 +10,7 @@ function sanitize(obj) {
   if (obj !== null && typeof obj === 'object') {
     const copy = {};
     for (const [k, v] of Object.entries(obj)) {
-      if (k !== 'createdAt' && k !== 'updatedAt') {
+      if (k !== 'createdAt' && k !== 'updatedAt' && k !== 'timestamp' && k !== 'persistence') {
         copy[k] = sanitize(v);
       }
     }
