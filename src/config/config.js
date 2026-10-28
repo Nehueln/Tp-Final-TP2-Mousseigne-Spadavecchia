@@ -11,4 +11,8 @@ export const config = {
       path: process.env.SQLITE_PATH || './database.sqlite',
     },
   },
+  notifier: {
+    type: (process.env.NOTIFIER_TYPE || 'console').toLowerCase(),
+    filePath: process.env.NOTIFIER_FILE_PATH || './logs/eventos.log',
+  },
 };
