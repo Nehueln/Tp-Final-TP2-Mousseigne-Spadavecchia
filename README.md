@@ -1,7 +1,7 @@
 # TP Integrador — API REST con Arquitectura en Capas: Liga Amateur de Fútbol
 
 **Asignatura:** Taller de Programación 2  
-**Integrantes:** Nehuel Mousseigne, Spadavecchia  
+**Integrantes:** Nehueln Mousseigne, Spadavecchia  
 **Tecnologías:** Node.js (ES Modules), Express, Zod, Sequelize, SQLite  
 
 ---
