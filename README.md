@@ -49,9 +49,9 @@ El proyecto implementa una API REST para la gestión integral de una **Liga Amat
    - No se puede eliminar un equipo que tenga partidos asignados, sea como local o como visitante (`409 EQUIPO_CON_PARTIDOS`).
 2. **Gestión de Jugadores:**
    - El DNI del jugador es único a nivel liga (`409 JUGADOR_DNI_DUPLICATED`).
-   - No pueden coexistir dos jugadores con el mismo número de camiseta en el mismo equipo (`409 JUGADOR_CAMISETA_DUPLICATED`).
+   - No pueden coexistir dos jugadores con el mismo número de camiseta en el mismo equipo (`409 CAMISETA_DUPLICATED`).
    - Todo jugador debe asignarse a un equipo existente (`404 EQUIPO_NOT_FOUND`).
-   - **Límite de plantilla:** Un equipo no puede superar el cupo máximo de 25 jugadores registrados (`409 EQUIPO_MAX_JUGADORES`).
+   - **Límite de plantilla:** Un equipo no puede superar el cupo máximo de 25 jugadores registrados (`409 EQUIPO_CUPO_MAXIMO`).
 3. **Gestión de Partidos:**
    - El equipo local y el visitante deben ser distintos (`400 PARTIDO_EQUIPOS_IGUALES`).
    - Ambos equipos deben existir en el sistema (`404 EQUIPO_NOT_FOUND`).
@@ -171,11 +171,19 @@ El servidor quedará disponible por defecto en `http://localhost:3000`.
 
 ---
 
-## 6. Pruebas y Verificación de Paridad
+## 6. Pruebas Automatizadas (Unitarias, Humo y Paridad)
 
-El proyecto incluye dos herramientas automatizadas de testing para asegurar la robustez de la API:
+El proyecto incluye tres niveles de pruebas automatizadas para garantizar la calidad de las reglas de negocio y la paridad de los adaptadores:
 
-### 1. Pruebas de Humo (`npm run smoke`)
+### 1. Tests Unitarios de Casos de Uso (`npm test`)
+
+Utiliza el test runner nativo de Node.js (`node:test` y `node:assert/strict`) junto con los DAOs en memoria como dobles de prueba (*Fakes*) y un bus de eventos espiado (`mock.fn()`). Corre en milisegundos sin levantar Express, sin base de datos en disco y sin depender de `.env`:
+
+```bash
+npm test
+```
+
+### 2. Pruebas de Humo (`npm run smoke`)
 
 Ejecuta una secuencia fija de 29 peticiones que evalúa:
 - Healthcheck.
@@ -188,7 +196,7 @@ Ejecuta una secuencia fija de 29 peticiones que evalúa:
 npm run smoke
 ```
 
-### 2. Verificación de Paridad Total (`npm run parity`)
+### 3. Verificación de Paridad Total (`npm run parity`)
 
 Levanta de manera sucesiva el servidor en modo `memory` y luego en modo `sequelize` (con base limpia), ejecuta la batería completa de 29 pruebas y realiza un análisis comparativo estricto paso a paso:
 
@@ -250,7 +258,15 @@ http://localhost:3000/api-docs
 
 ---
 
-## 9. Estado del Proyecto
+## 9. Limitaciones Conocidas
+
+1. **Condición de carrera en el cupo de 25 jugadores:** La regla que verifica `countByEquipo < 25` antes de insertar se evalúa en el caso de uso (`jugadorUseCases.js`). Ante dos peticiones concurrentes simultáneas cuando el club tiene 24 jugadores, ambas podrían leer `24` antes de insertar. En un entorno de alta concurrencia se mitigaría envolviendo el conteo y la inserción en una transacción con bloqueo o mediante un trigger SQL.
+2. **Eventos en memoria dentro de un único proceso:** El bus de eventos utiliza `EventEmitter` nativo de Node.js (`node:events`). Si el proceso se detiene abruptamente durante un efecto secundario asíncrono, el evento no se reintenta (a diferencia de una cola persistente como RabbitMQ o Redis).
+3. **Sincronización de esquema SQLite sin migraciones:** En modo `sequelize` se utiliza `sequelize.sync()` simple (evitando `{ alter: true }`, que en SQLite recrea tablas y puede corromper claves foráneas o índices compuestos). Si se modifica la estructura de columnas de un modelo en desarrollo, se debe regenerar el archivo `.sqlite`.
+
+---
+
+## 10. Estado del Proyecto
 
 | Componente / Módulo | Memoria | Sequelize (SQLite) | Swagger UI |
 |---|:---:|:---:|:---:|
@@ -258,6 +274,7 @@ http://localhost:3000/api-docs
 | **Jugadores** | ✅ Listo | ✅ Listo | ✅ Listo |
 | **Partidos** | ✅ Listo | ✅ Listo | ✅ Listo |
 | **Eventos (`partido.finalizado`)** | ✅ Listo | ✅ Listo | — |
+| **Tests Unitarios (`npm test`)** | ✅ Listo (12/12) | — | — |
 | **Smoke Test (`npm run smoke`)** | ✅ Listo (29/29) | ✅ Listo (29/29) | — |
 | **Test de Paridad (`npm run parity`)** | ✅ Verificado (29/29) | ✅ Verificado (29/29) | — |
 

@@ -7,8 +7,12 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "test": "node --test",
     "smoke": "node scripts/smoke.mjs",
     "parity": "node scripts/parity.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [
     "express",

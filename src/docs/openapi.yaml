@@ -900,28 +900,95 @@ components:
 
   responses:
     BadRequest:
-      description: Solicitud inválida por error de formato o regla de validación de sintaxis (400)
+      description: >
+        Solicitud inválida (400). Códigos posibles: `VALIDATION_ERROR`, `INVALID_JSON`, `PARTIDO_EQUIPOS_IGUALES`.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          examples:
+            VALIDATION_ERROR:
+              summary: Error de validación de forma (Zod)
+              value:
+                error:
+                  code: VALIDATION_ERROR
+                  message: Error de validación en la petición
+                  details:
+                    - path: dni
+                      message: El DNI debe contener 7 u 8 dígitos numéricos sin puntos
+            PARTIDO_EQUIPOS_IGUALES:
+              summary: Equipo local y visitante iguales
+              value:
+                error:
+                  code: PARTIDO_EQUIPOS_IGUALES
+                  message: El equipo local y el visitante deben ser distintos
+                  details: null
 
     NotFound:
-      description: Recurso no encontrado (404)
+      description: >
+        Recurso no encontrado (404). Códigos posibles: `EQUIPO_NOT_FOUND`, `JUGADOR_NOT_FOUND`, `PARTIDO_NOT_FOUND`, `ROUTE_NOT_FOUND`.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          examples:
+            EQUIPO_NOT_FOUND:
+              value:
+                error:
+                  code: EQUIPO_NOT_FOUND
+                  message: No se encontró el equipo con ID 999
+                  details: null
+            JUGADOR_NOT_FOUND:
+              value:
+                error:
+                  code: JUGADOR_NOT_FOUND
+                  message: No se encontró el jugador con ID 999
+                  details: null
+            PARTIDO_NOT_FOUND:
+              value:
+                error:
+                  code: PARTIDO_NOT_FOUND
+                  message: No se encontró el partido con ID 999
+                  details: null
 
     Conflict:
-      description: Conflicto con el estado actual del recurso o regla de negocio (409)
+      description: >
+        Conflicto con una regla de negocio o estado actual (409). Códigos posibles:
+        `EQUIPO_NAME_DUPLICATED`, `EQUIPO_CON_JUGADORES`, `EQUIPO_CON_PARTIDOS`,
+        `EQUIPO_CUPO_MAXIMO`, `JUGADOR_DNI_DUPLICATED`, `CAMISETA_DUPLICATED`,
+        `PARTIDO_FINALIZADO`, `PARTIDO_YA_FINALIZADO`.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          examples:
+            EQUIPO_NAME_DUPLICATED:
+              value:
+                error:
+                  code: EQUIPO_NAME_DUPLICATED
+                  message: Ya existe un equipo registrado con el nombre "Boca Juniors"
+                  details: null
+            EQUIPO_CUPO_MAXIMO:
+              value:
+                error:
+                  code: EQUIPO_CUPO_MAXIMO
+                  message: El equipo "Boca Juniors" ya alcanzó el cupo máximo permitido de 25 jugadores
+                  details: null
+            CAMISETA_DUPLICATED:
+              value:
+                error:
+                  code: CAMISETA_DUPLICATED
+                  message: El número de camiseta 10 ya está ocupado en el equipo "Boca Juniors"
+                  details: null
+            PARTIDO_FINALIZADO:
+              value:
+                error:
+                  code: PARTIDO_FINALIZADO
+                  message: No se puede modificar un partido que ya ha sido finalizado
+                  details: null
 
     InternalError:
-      description: Error interno no controlado del servidor (500)
+      description: Error interno no controlado del servidor (500 — `INTERNAL_SERVER_ERROR`)
       content:
         application/json:
           schema:
