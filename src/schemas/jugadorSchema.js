@@ -43,7 +43,7 @@ export const jugadorIdParamSchema = z.object({
   id: z
     .string()
     .regex(/^\d+$/, 'El ID debe ser un número entero')
-    .transform(Number),
+    .transform(Number), // Devuelve solo un nùmero limpiando el resto del input. 007 a 7
 });
 
 export const jugadorQuerySchema = z.object({

@@ -20,10 +20,10 @@ export const makeJugadorController = ({ jugadorUseCases }) => {
 
     async crear(req, res, next) {
       try {
-        const nuevoJugador = await jugadorUseCases.crearJugador(req.body);
+        const nuevoJugador = await jugadorUseCases.crearJugador(req.body); //responde 201 Nuevo Jugador.
         res.status(201).json({ data: nuevoJugador });
       } catch (err) {
-        next(err);
+        next(err); // handler error
       }
     },
 

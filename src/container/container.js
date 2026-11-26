@@ -15,37 +15,39 @@ import { registerPartidoListeners } from '../events/listeners/partidoListeners.j
 
 export const createContainer = ({ config }) => {
   // 1. Instanciar Bus de Eventos y Notificador desacoplado
-  const eventBus = createEventBus();
-  const notifier = createNotifier({
+  const eventBus = createEventBus(); //eventBus.emit emite el mensaje.
+  const notifier = createNotifier({ //Hace los console logs notificando el mismo.
     type: config.notifier?.type,
     filePath: config.notifier?.filePath,
   });
 
   // Registrar listeners de dominio
-  registerPartidoListeners({ eventBus, notifier });
+  registerPartidoListeners({ eventBus, notifier }); // Entrar mostrar try catch por si da error la noti
 
   // 2. Resolver DAOs mediante la factory (memory o sequelize)
-  const daos = createDaoFactory({
+  const daos = createDaoFactory({ // Switch segun memoria
     persistenceType: config.persistence.type,
     sqliteConfig: config.persistence.sqlite,
   });
 
+  //Se crean 3 cosas UseCase, Controlador y Ruta.
+
   // 3. Instanciar Casos de Uso con los DAOs y EventBus inyectados
   const equipoUseCases = makeEquipoUseCases({
-    equipoDao: daos.equipoDao,
-    jugadorDao: daos.jugadorDao, // para impedir borrar equipos con jugadores
+    equipoDao: daos.equipoDao, // Lo usa para crear, buscar, editar y borrar equipos
+    jugadorDao: daos.jugadorDao, // Lo usa SOLO al borrar un equipo, para preguntar: "¿tiene jugadores?"
     partidoDao: daos.partidoDao, // para impedir borrar equipos con partidos
   });
 
   const jugadorUseCases = makeJugadorUseCases({
-    jugadorDao: daos.jugadorDao,
-    equipoDao: daos.equipoDao,
+    jugadorDao: daos.jugadorDao, // Lo usa para anotar jugadores, contar hasta 25, 
+    equipoDao: daos.equipoDao, // Lo usa para preguntar: "¿existe el club donde quieren fichar a este jugador?"
   });
 
   const partidoUseCases = makePartidoUseCases({
-    partidoDao: daos.partidoDao,
-    equipoDao: daos.equipoDao,
-    eventBus,
+    partidoDao: daos.partidoDao, // Lo usa para crear, editar, borrar y finalizar partidos
+    equipoDao: daos.equipoDao, // Lo usa para preguntar: "¿existen el equipo local y el equipo visitante?"
+    eventBus, // Se usa para avisar "partido.finalizado" cuando termina un partido
   });
 
   // 3. Instanciar Controladores con los Casos de Uso inyectados

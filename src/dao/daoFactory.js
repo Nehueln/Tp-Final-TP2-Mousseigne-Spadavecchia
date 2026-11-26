@@ -20,7 +20,7 @@ export const createDaoFactory = ({ persistenceType = 'memory', sqliteConfig } = 
         equipoDao,
         jugadorDao,
         partidoDao,
-        init: async () => {},
+        init: async () => { }, //No prepara nada
       };
     }
 
@@ -37,7 +37,7 @@ export const createDaoFactory = ({ persistenceType = 'memory', sqliteConfig } = 
         jugadorDao,
         partidoDao,
         init: async () => {
-          await sequelize.sync();
+          await sequelize.sync(); //Prepara sequilize
         },
       };
     }

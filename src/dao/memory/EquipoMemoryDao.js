@@ -10,7 +10,7 @@ export class EquipoMemoryDao {
 
   async findById(id) {
     const equipo = this.equipos.find((e) => e.id === Number(id));
-    return equipo ? { ...equipo } : null;
+    return equipo ? { ...equipo } : null; // Spread
   }
 
   async findByNombre(nombre) {
