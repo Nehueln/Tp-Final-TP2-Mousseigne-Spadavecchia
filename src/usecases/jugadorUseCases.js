@@ -1,11 +1,13 @@
 import { AppError } from '../errors/AppError.js';
+import { paginarYOrdenar } from '../utils/paginate.js';
 
 const LIMITE_JUGADORES_POR_EQUIPO = 25;
 
 export const makeJugadorUseCases = ({ jugadorDao, equipoDao }) => {
   return {
-    async listarJugadores(filters = {}) {
-      return await jugadorDao.findAll(filters);
+    async listarJugadores(query = {}) {
+      const jugadores = await jugadorDao.findAll(query);
+      return paginarYOrdenar(jugadores, query);
     },
 
     async obtenerJugadorPorId(id) {

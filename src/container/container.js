@@ -9,6 +9,9 @@ import { makeJugadorRouter } from '../routes/jugadorRoutes.js';
 import { makePartidoUseCases } from '../usecases/partidoUseCases.js';
 import { makePartidoController } from '../controllers/partidoController.js';
 import { makePartidoRouter } from '../routes/partidoRoutes.js';
+import { makeTablaPosicionesUseCases } from '../usecases/tablaPosicionesUseCases.js';
+import { makeTablaPosicionesController } from '../controllers/tablaPosicionesController.js';
+import { makeTablaPosicionesRouter } from '../routes/tablaPosicionesRoutes.js';
 import { createEventBus } from '../events/eventBus.js';
 import { createNotifier } from '../events/notifiers/createNotifier.js';
 import { registerPartidoListeners } from '../events/listeners/partidoListeners.js';
@@ -50,6 +53,11 @@ export const createContainer = ({ config }) => {
     eventBus, // Se usa para avisar "partido.finalizado" cuando termina un partido
   });
 
+  const tablaPosicionesUseCases = makeTablaPosicionesUseCases({
+    equipoDao: daos.equipoDao,
+    partidoDao: daos.partidoDao,
+  });
+
   // 3. Instanciar Controladores con los Casos de Uso inyectados
   const equipoController = makeEquipoController({
     equipoUseCases,
@@ -63,12 +71,17 @@ export const createContainer = ({ config }) => {
     partidoUseCases,
   });
 
+  const tablaPosicionesController = makeTablaPosicionesController({
+    tablaPosicionesUseCases,
+  });
+
   // 4. Montar Routers con sus prefijos (/equipos, /jugadores, /partidos)
   const router = Router();
 
   router.use('/equipos', makeEquipoRouter({ equipoController }));
   router.use('/jugadores', makeJugadorRouter({ jugadorController }));
   router.use('/partidos', makePartidoRouter({ partidoController }));
+  router.use('/tabla-posiciones', makeTablaPosicionesRouter({ tablaPosicionesController }));
 
   return {
     router,
@@ -79,6 +92,7 @@ export const createContainer = ({ config }) => {
       equipoUseCases,
       jugadorUseCases,
       partidoUseCases,
+      tablaPosicionesUseCases,
     },
   };
 };

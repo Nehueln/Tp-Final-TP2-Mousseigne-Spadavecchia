@@ -1,9 +1,11 @@
 import { AppError } from '../errors/AppError.js';
+import { paginarYOrdenar } from '../utils/paginate.js';
 
 export const makeEquipoUseCases = ({ equipoDao, jugadorDao, partidoDao }) => {
   return {
-    async listarEquipos() {
-      return await equipoDao.findAll();
+    async listarEquipos(query = {}) {
+      const equipos = await equipoDao.findAll();
+      return paginarYOrdenar(equipos, query);
     },
 
     async obtenerEquipoPorId(id) {

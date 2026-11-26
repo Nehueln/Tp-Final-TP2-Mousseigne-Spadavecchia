@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { makePaginationQuerySchema } from './paginationSchema.js';
 
 export const ESTADOS_PARTIDO = ['programado', 'finalizado'];
 
@@ -61,11 +62,15 @@ export const partidoIdParamSchema = z.object({
     .transform(Number),
 });
 
-export const partidoQuerySchema = z.object({
-  estado: z.enum(ESTADOS_PARTIDO).optional(),
-  equipoId: z
-    .string()
-    .regex(/^\d+$/, 'El equipoId debe ser un número entero')
-    .transform(Number)
-    .optional(),
-});
+export const partidoQuerySchema = z
+  .object({
+    estado: z.enum(ESTADOS_PARTIDO).optional(),
+    equipoId: z
+      .string()
+      .regex(/^\d+$/, 'El equipoId debe ser un número entero')
+      .transform(Number)
+      .optional(),
+  })
+  .merge(
+    makePaginationQuerySchema(['id', 'fecha', 'golesLocal', 'golesVisitante', 'estado'])
+  );

@@ -2,8 +2,12 @@ export const makeEquipoController = ({ equipoUseCases }) => {
   return {
     async listar(req, res, next) {
       try {
-        const equipos = await equipoUseCases.listarEquipos();
-        res.status(200).json({ data: equipos });
+        const resultado = await equipoUseCases.listarEquipos(req.query);
+        if (Array.isArray(resultado)) {
+          res.status(200).json({ data: resultado });
+        } else {
+          res.status(200).json(resultado);
+        }
       } catch (err) {
         next(err);
       }

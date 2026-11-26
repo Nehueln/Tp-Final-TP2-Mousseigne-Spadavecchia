@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { makePaginationQuerySchema } from './paginationSchema.js';
 
 export const createEquipoSchema = z.object({
   nombre: z
@@ -33,3 +34,10 @@ export const equipoIdParamSchema = z.object({
     .regex(/^\d+$/, 'El ID debe ser un número entero')
     .transform(Number),
 });
+
+export const equipoQuerySchema = makePaginationQuerySchema([
+  'id',
+  'nombre',
+  'barrio',
+  'fechaFundacion',
+]);

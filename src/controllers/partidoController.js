@@ -2,8 +2,12 @@ export const makePartidoController = ({ partidoUseCases }) => {
   return {
     async listar(req, res, next) {
       try {
-        const partidos = await partidoUseCases.listarPartidos(req.query);
-        res.status(200).json({ data: partidos });
+        const resultado = await partidoUseCases.listarPartidos(req.query);
+        if (Array.isArray(resultado)) {
+          res.status(200).json({ data: resultado });
+        } else {
+          res.status(200).json(resultado);
+        }
       } catch (err) {
         next(err);
       }

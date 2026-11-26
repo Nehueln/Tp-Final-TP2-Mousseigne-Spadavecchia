@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { makePaginationQuerySchema } from './paginationSchema.js';
 
 export const POSICIONES = ['ARQUERO', 'DEFENSOR', 'MEDIOCAMPISTA', 'DELANTERO'];
 
@@ -46,11 +47,15 @@ export const jugadorIdParamSchema = z.object({
     .transform(Number), // Devuelve solo un nùmero limpiando el resto del input. 007 a 7
 });
 
-export const jugadorQuerySchema = z.object({
-  equipoId: z
-    .string()
-    .regex(/^\d+$/, 'El equipoId debe ser un número entero')
-    .transform(Number)
-    .optional(),
-  posicion: z.enum(POSICIONES).optional(),
-});
+export const jugadorQuerySchema = z
+  .object({
+    equipoId: z
+      .string()
+      .regex(/^\d+$/, 'El equipoId debe ser un número entero')
+      .transform(Number)
+      .optional(),
+    posicion: z.enum(POSICIONES).optional(),
+  })
+  .merge(
+    makePaginationQuerySchema(['id', 'nombre', 'apellido', 'numeroCamiseta', 'posicion'])
+  );

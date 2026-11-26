@@ -4,12 +4,17 @@ import {
   createEquipoSchema,
   updateEquipoSchema,
   equipoIdParamSchema,
+  equipoQuerySchema,
 } from '../schemas/equipoSchema.js';
 
 export const makeEquipoRouter = ({ equipoController }) => {
   const router = Router();
 
-  router.get('/', equipoController.listar);
+  router.get(
+    '/',
+    validate({ query: equipoQuerySchema }),
+    equipoController.listar
+  );
 
   router.get(
     '/:id',
