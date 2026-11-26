@@ -1,10 +1,12 @@
 import { AppError } from '../errors/AppError.js';
 import { PARTIDO_FINALIZADO } from '../events/eventNames.js';
+import { paginarYOrdenar } from '../utils/paginate.js';
 
 export const makePartidoUseCases = ({ partidoDao, equipoDao, eventBus }) => {
   return {
-    async listarPartidos(filters = {}) {
-      return await partidoDao.findAll(filters);
+    async listarPartidos(query = {}) {
+      const partidos = await partidoDao.findAll(query);
+      return paginarYOrdenar(partidos, query);
     },
 
     async obtenerPartidoPorId(id) {

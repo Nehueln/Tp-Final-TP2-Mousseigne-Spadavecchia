@@ -2,8 +2,12 @@ export const makeJugadorController = ({ jugadorUseCases }) => {
   return {
     async listar(req, res, next) {
       try {
-        const jugadores = await jugadorUseCases.listarJugadores(req.query);
-        res.status(200).json({ data: jugadores });
+        const resultado = await jugadorUseCases.listarJugadores(req.query);
+        if (Array.isArray(resultado)) {
+          res.status(200).json({ data: resultado });
+        } else {
+          res.status(200).json(resultado);
+        }
       } catch (err) {
         next(err);
       }
